@@ -1,17 +1,7 @@
-// Проверяем, что CONFIG загрузился
-if (typeof CONFIG === 'undefined') {
-    alert('Ошибка: config.js не загрузился! Проверь, что файл существует.');
-}
-
 // === АВТОРИЗАЦИЯ ===
 function checkPassword() {
     const input = document.getElementById('passwordInput').value;
-    const correctPassword = CONFIG.ADMIN_PASSWORD;
-    
-    console.log('Введён пароль:', input);
-    console.log('Правильный пароль:', correctPassword);
-    
-    if (input === correctPassword) {
+    if (input === CONFIG.ADMIN_PASSWORD) {
         sessionStorage.setItem('adminAuth', 'true');
         showAdminPanel();
     } else {
@@ -30,11 +20,7 @@ function showAdminPanel() {
     loadNasheeds();
 }
 
-// Проверяем авторизацию при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Страница загрузилась');
-    console.log('CONFIG:', CONFIG);
-    
     if (sessionStorage.getItem('adminAuth') === 'true') {
         showAdminPanel();
     }
@@ -50,7 +36,7 @@ async function loadNasheeds() {
             `https://api.github.com/repos/${CONFIG.GITHUB_USERNAME}/${CONFIG.GITHUB_REPO}/contents/${CONFIG.AUDIO_PATH}`,
             {
                 headers: {
-                    'Authorization': `token ${CONFIG.GITHUB_TOKEN}`,
+                    'Authorization': `Bearer ${CONFIG.GITHUB_TOKEN}`,
                     'Accept': 'application/vnd.github.v3+json'
                 }
             }
@@ -59,7 +45,11 @@ async function loadNasheeds() {
         const data = await response.json();
 
         if (!Array.isArray(data)) {
-            listEl.innerHTML = `<p class="error">Ошибка: ${data.message || 'Неизвестная ошибка'}</p>`;
+            if (data.message === 'Bad credentials') {
+                listEl.innerHTML = '<p class="error">❌ Ошибка токена! Проверь GITHUB_TOKEN в config.js</p>';
+            } else {
+                listEl.innerHTML = `<p class="error">Ошибка: ${data.message || 'Неизвестная ошибка'}</p>`;
+            }
             return;
         }
 
@@ -70,17 +60,35 @@ async function loadNasheeds() {
             return;
         }
 
-        listEl.innerHTML = mp3Files.map(file => `
-            <div class="nasheed-item">
-                <div class="nasheed-info">
-                    <h3>${file.name}</h3>
+        const appJsResponse = await fetch(
+            `https://raw.githubusercontent.com/${CONFIG.GITHUB_USERNAME}/${CONFIG.GITHUB_REPO}/main/app.js`
+        );
+        const appJsContent = await appJsResponse.text();
+        const nasheedsMatch = appJsContent.match(/const nasheeds = \[([\s\S]*?)\];/);
+        let nasheeds = [];
+        
+        if (nasheedsMatch) {
+            try {
+                nasheeds = eval(`[${nasheedsMatch[1]}]`);
+            } catch (e) {
+                console.error('Ошибка парсинга:', e);
+            }
+        }
+
+        listEl.innerHTML = mp3Files.map(file => {
+            const nasheed = nasheeds.find(n => n.file === `${CONFIG.AUDIO_PATH}/${file.name}`);
+            return `
+                <div class="nasheed-item">
+                    <div class="nasheed-info">
+                        <h3>${nasheed ? nasheed.title : file.name}</h3>
+                        <p>${nasheed ? nasheed.artist : 'Неизвестно'} • ${nasheed ? nasheed.duration : ''}</p>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
 
     } catch (error) {
         listEl.innerHTML = `<p class="error">Ошибка: ${error.message}</p>`;
-        console.error(error);
     }
 }
 
@@ -115,7 +123,7 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
                 {
                     method: 'PUT',
                     headers: {
-                        'Authorization': `token ${CONFIG.GITHUB_TOKEN}`,
+                        'Authorization': `Bearer ${CONFIG.GITHUB_TOKEN}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
@@ -130,14 +138,13 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
                 throw new Error(errorData.message || 'Ошибка загрузки');
             }
 
-            showStatus('✅ Файл загружен! Теперь добавьте информацию в app.js вручную.', 'success');
+            showStatus('✅ Файл загружен! Теперь обнови основной сайт.', 'success');
             document.getElementById('addForm').reset();
         };
         reader.readAsDataURL(file);
 
     } catch (error) {
         showStatus(`❌ Ошибка: ${error.message}`, 'error');
-        console.error(error);
     }
 });
 
