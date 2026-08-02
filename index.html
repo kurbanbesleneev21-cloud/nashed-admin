@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель Нашидов</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Экран входа -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-box">
+            <h1> Вход в админ-панель</h1>
+            <input type="password" id="passwordInput" placeholder="Введите пароль">
+            <button onclick="checkPassword()">Войти</button>
+            <p id="loginError" class="error"></p>
+        </div>
+    </div>
+
+    <!-- Главная панель -->
+    <div id="adminPanel" class="admin-panel" style="display:none;">
+        <header>
+            <h1>⚙️ Админ-панель Нашидов</h1>
+            <button onclick="logout()" class="logout-btn">Выйти</button>
+        </header>
+
+        <main>
+            <!-- Форма добавления -->
+            <section class="add-section">
+                <h2>➕ Добавить новый нашид</h2>
+                <form id="addForm">
+                    <div class="form-group">
+                        <label>Название нашида:</label>
+                        <input type="text" id="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Исполнитель:</label>
+                        <input type="text" id="artist" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Длительность (например, 4:32):</label>
+                        <input type="text" id="duration" required>
+                    </div>
+                    <div class="form-group">
+                        <label>MP3 файл:</label>
+                        <input type="file" id="audioFile" accept="audio/mp3,audio/mpeg" required>
+                    </div>
+                    <button type="submit" class="upload-btn">📤 Загрузить нашид</button>
+                </form>
+                <div id="uploadStatus"></div>
+            </section>
+
+            <!-- Список нашидов -->
+            <section class="list-section">
+                <h2>📋 Список нашидов</h2>
+                <div id="nasheedList" class="nasheed-list">
+                    <p>Загрузка...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
