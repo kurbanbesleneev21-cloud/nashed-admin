@@ -1,7 +1,7 @@
 // НАСТРОЙКИ АДМИН ПАНЕЛИ
 const CONFIG = {
     // Пароль для входа в админку (измени на свой!)
-    ADMIN_PASSWORD: 'твой-пароль-123',
+    ADMIN_PASSWORD: '197788szz',
     
     // GitHub настройки
     GITHUB_USERNAME: 'kurbanbesleneev21-cloud',
