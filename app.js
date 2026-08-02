@@ -36,7 +36,7 @@ async function loadNasheeds() {
             `https://api.github.com/repos/${CONFIG.GITHUB_USERNAME}/${CONFIG.GITHUB_REPO}/contents/${CONFIG.AUDIO_PATH}`,
             {
                 headers: {
-                    'Authorization': `Bearer ${CONFIG.GITHUB_TOKEN}`,
+                    'Authorization': `token ${CONFIG.GITHUB_TOKEN}`,
                     'Accept': 'application/vnd.github.v3+json'
                 }
             }
@@ -123,7 +123,7 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
                 {
                     method: 'PUT',
                     headers: {
-                        'Authorization': `Bearer ${CONFIG.GITHUB_TOKEN}`,
+                        'Authorization': `token ${CONFIG.GITHUB_TOKEN}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
@@ -138,8 +138,9 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
                 throw new Error(errorData.message || 'Ошибка загрузки');
             }
 
-            showStatus('✅ Файл загружен! Теперь обнови основной сайт.', 'success');
+            showStatus('✅ Файл загружен!', 'success');
             document.getElementById('addForm').reset();
+            setTimeout(() => loadNasheeds(), 2000);
         };
         reader.readAsDataURL(file);
 
